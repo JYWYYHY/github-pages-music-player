@@ -28,8 +28,8 @@ def args() :
             '查看', 
         ])
     )
-    parser.add_argument('-u', '--username', dest='username', type=str, default="admin", help='账号')
-    parser.add_argument('-p', '--password', dest='password', type=str, default="654321", help='密码')
+    parser.add_argument('-u', '--username', dest='username', type=str, default="jywyyhy", help='账号')
+    parser.add_argument('-p', '--password', dest='password', type=str, default="yypryym", help='密码')
     return parser.parse_args()
 
 
