@@ -313,7 +313,7 @@ function loadLocalLyric(music, callback) {
     if (music.lyric_id) {
         callback(music.lyric, music.lyric_id);
     } else {
-        callback('');  // 没有歌词ID，直接返回
+        lyricTip('暂无歌词');
     }
 }
 

@@ -370,49 +370,183 @@ function musicInfo(list, index) {
 
 // 展现搜索弹窗
 function searchBox() {
-    var keyword = prompt("请输入歌曲关键字：");
-    if (keyword) {
-        var songElements = document.querySelectorAll('.list-item');
-        for (var i = 0; i < songElements.length; i++) {
-            var songElement = songElements[i];
-            var songNameElement = songElement.querySelector('.music-name');
-            if (songNameElement && songNameElement.textContent.includes(keyword)) {
-                // 使用 mCustomScrollbar 插件的 scrollTo 方法来滚动到目标歌曲
-                $("#mCSB_draggerContainer").mCustomScrollbar("scrollTo", songElement);
-                break;
+    var tmpHtml =
+        '<div style="padding: 20px;">' +
+        '  <input type="text" id="search-wd" placeholder="输入歌名 / 歌手 / 专辑" ' +
+        '         style="width:100%;box-sizing:border-box;padding:8px 10px;' +
+        '                background:rgba(23,20,31,.7);color:#f6e1d3;' +
+        '                border:1px solid rgba(231,173,98,.5);border-radius:6px;' +
+        '                font-size:14px;outline:none;">' +
+        '  <div style="margin-top:14px;color:#e7ad62;font-size:13px;">搜索范围：</div>' +
+        '  <div style="margin-top:8px;color:#f6e1d3;font-size:13px;">' +
+        '    <label style="margin-right:16px;cursor:pointer;">' +
+        '      <input type="radio" name="search-scope" value="current" checked> 本歌单' +
+        '    </label>' +
+        '    <label style="margin-right:16px;cursor:pointer;">' +
+        '      <input type="radio" name="search-scope" value="playing"> 播放列表' +
+        '    </label>' +
+        '    <label style="cursor:pointer;">' +
+        '      <input type="radio" name="search-scope" value="all"> 所有歌单' +
+        '    </label>' +
+        '  </div>' +
+        '  <div style="margin-top:14px;">' +
+        '    <div style="color:#e7ad62;font-size:13px;">最近搜索：</div>' +
+        '    <div id="search-history" style="margin-top:6px;"></div>' +
+        '  </div>' +
+        '</div>';
+
+    layer.open({
+        type: 1,
+        title: '歌曲搜索',
+        area: ['380px', 'auto'],
+        shade: 0.5,
+        shadeClose: true,
+        content: tmpHtml,
+        btn: ['搜索', '取消'],
+        btn1: function (index) {
+            execSearch();
+        },
+        btn2: function (index) {
+            layer.close(index);
+        },
+        success: function (layero) {
+            // 渲染搜索历史
+            renderSearchHistory();
+
+            // 自动聚焦
+            setTimeout(function () { $('#search-wd').focus(); }, 100);
+
+            // 回车直接搜
+            $('#search-wd').on('keydown', function (e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    e.preventDefault();
+                    execSearch();
+                }
+            });
+
+            // 点击历史项填入
+            $('#search-history').on('click', '.search-history-item', function () {
+                var kw = $(this).attr('data-kw');
+                $('#search-wd').val(kw).focus();
+            });
+        }
+    });
+}
+
+// 执行搜索（按钮点击 / 回车共用）
+function execSearch() {
+    var keyword = $('#search-wd').val().trim();
+    var scope = $('input[name="search-scope"]:checked').val();
+    if (!keyword) {
+        layer.msg('搜索内容不能为空');
+        return;
+    }
+    // 先读取再关闭弹窗
+    layer.closeAll('page');
+    doLocalSearch(keyword, scope);
+}
+
+// 渲染搜索历史
+function renderSearchHistory() {
+    var history = playerReaddata('search_history') || [];
+    var $box = $('#search-history');
+    if (!Array.isArray(history) || history.length === 0) {
+        $box.html('<span style="color:rgba(226,201,197,.5);font-size:12px;">暂无</span>');
+        return;
+    }
+    var html = '';
+    for (var i = 0; i < history.length; i++) {
+        var kw = escapeHtml(String(history[i]));
+        html += '<span class="search-history-item" data-kw="' + kw + '" ' +
+                'style="display:inline-block;margin:3px 6px 3px 0;padding:3px 10px;' +
+                'background:rgba(73,55,68,.6);border:1px solid rgba(231,173,98,.4);' +
+                'border-radius:999px;color:#f6e1d3;font-size:12px;cursor:pointer;">' +
+                kw + '</span>';
+    }
+    $box.html(html);
+}
+
+// 写入搜索历史（去重、最多 5 条、最新的在前）
+function addSearchHistory(keyword) {
+    var history = playerReaddata('search_history') || [];
+    if (!Array.isArray(history)) history = [];
+    history = history.filter(function (k) { return k !== keyword; });
+    history.unshift(keyword);
+    if (history.length > 5) history = history.slice(0, 5);
+    playerSavedata('search_history', history);
+}
+
+// 简易 HTML 转义（防止关键词里的特殊字符破坏 HTML）
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+
+// 本地歌单搜索
+function doLocalSearch(keyword, scope) {
+    // 记入搜索历史
+    addSearchHistory(keyword);
+
+    var kw = keyword.toLowerCase();
+
+    function match(music) {
+        return (music.name && music.name.toLowerCase().indexOf(kw) !== -1) ||
+               (music.artist && music.artist.toLowerCase().indexOf(kw) !== -1) ||
+               (music.album && music.album.toLowerCase().indexOf(kw) !== -1);
+    }
+
+    // 决定搜索哪些列表
+    var listIndexes = [];
+    if (scope === 'current') {
+        if (rem.dislist !== undefined && rem.dislist !== 0) {
+            listIndexes = [rem.dislist];
+        }
+    } else if (scope === 'playing') {
+        listIndexes = [1];
+    } else {
+        for (var i = 1; i < musicList.length; i++) {
+            listIndexes.push(i);
+        }
+    }
+
+    if (listIndexes.length === 0) {
+        layer.msg('当前没有可搜索的歌单');
+        return;
+    }
+
+    // 遍历搜索 + 去重
+    var results = [];
+    var seen = {};
+    for (var x = 0; x < listIndexes.length; x++) {
+        var li = listIndexes[x];
+        if (!musicList[li] || !musicList[li].item) continue;
+        for (var j = 0; j < musicList[li].item.length; j++) {
+            var m = musicList[li].item[j];
+            if (!m) continue;
+            var key = m.id || (m.name + '|' + m.artist);
+            if (seen[key]) continue;
+            if (match(m)) {
+                seen[key] = true;
+                results.push(m);
             }
         }
     }
-    return;
 
-    // 旧版本代码
-    var tmpHtml = '<form onSubmit="return searchSubmit()"><div id="search-area">' +
-        '    <div class="search-group">' +
-        '        <input type="text" name="wd" id="search-wd" placeholder="搜索歌手、歌名、专辑" autofocus required>' +
-        '        <button class="search-submit" type="submit">搜 索</button>' +
-        '    </div>' +
-        '    <div class="radio-group" id="music-source">' +
-        '       <label><input type="radio" name="source" value="netease" checked=""> 网易云</label>' +
-        '       <label><input type="radio" name="source" value="tencent"> QQ</label>' +
-        '       <label><input type="radio" name="source" value="xiami"> 虾米</label>' +
-        '       <label><input type="radio" name="source" value="kugou"> 酷狗</label>' +
-        '       <label><input type="radio" name="source" value="baidu"> 百度</label>' +
-        '   </div>' +
-        '</div></form>';
-    layer.open({
-        type: 1,
-        shade: false,
-        title: false, // 不显示标题
-        shade: 0.5,    // 遮罩颜色深度
-        shadeClose: true,
-        content: tmpHtml,
-        cancel: function () {
-        }
-    });
+    if (results.length === 0) {
+        layer.msg('没有找到匹配的歌曲');
+        return;
+    }
 
-    // 恢复上一次的输入
-    $("#search-wd").focus().val(rem.wd);
-    $("#music-source input[name='source'][value='" + rem.source + "']").prop("checked", "checked");
+    // 结果写入"搜索结果"列表，并记录关键词（供高亮用）
+    musicList[0].item = results;
+    musicList[0].name = '搜索：' + keyword;
+    musicList[0].searchKeyword = keyword;
+
+    rem.dislist = 0;
+    loadList(0);
+
+    layer.msg('找到 ' + results.length + ' 首歌曲');
 }
 
 // 搜索提交
@@ -516,21 +650,21 @@ function downloadFromGitHubPages(url, fileName, music) {
 
 // 显示下载备用方案
 function showDownloadAlternatives(url, fileName, music) {
-    var content = '<div style="text-align: left; padding: 20px;">' +
-        '<h3>下载：' + music.name + '</h3>' +
-        '<p>如果自动下载没有开始，请尝试以下方式：</p>' +
+    var content = '<div style="text-align: left; padding: 20px; color: rgba(246,225,211,.88);">' +
+        '<h3 style="color:#e7ad62;margin-bottom:14px;">下载：' + music.name + '</h3>' +
+        '<p style="color:rgba(246,225,211,.7);">如果自动下载没有开始，请尝试以下方式：</p>' +
         '<div style="margin: 15px 0;">' +
-            '<button type="button" onclick="openInNewTab(\'' + url + '\')" style="margin: 5px; padding: 8px 15px; background: #007cba; color: white; border: none; cursor: pointer; border-radius: 4px;">在新标签页中打开</button>' +
+            '<button type="button" onclick="openInNewTab(\'' + url + '\')" style="margin: 5px; padding: 8px 18px; background: #e7ad62; color: #29202d; border: 1px solid #e7ad62; cursor: pointer; border-radius: 6px; font-weight: 500; font-size: 14px; transition: background .2s ease;" onmouseover="this.style.background=\'#f3c985\'" onmouseout="this.style.background=\'#e7ad62\'">在新标签页中打开</button>' +
         '</div>' +
         '<div style="margin: 15px 0;">' +
-            '<button type="button" onclick="copyDownloadLink(\'' + url + '\')" style="margin: 5px; padding: 8px 15px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px;">复制下载链接</button>' +
+            '<button type="button" onclick="copyDownloadLink(\'' + url + '\')" style="margin: 5px; padding: 8px 18px; background: transparent; color: #e7ad62; border: 1px solid #e7ad62; cursor: pointer; border-radius: 6px; font-weight: 500; font-size: 14px; transition: all .2s ease;" onmouseover="this.style.background=\'#e7ad62\';this.style.color=\'#29202d\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'#e7ad62\'">复制下载链接</button>' +
         '</div>' +
-        '<div style="margin: 15px 0; font-size: 12px; color: #666;">' +
-            '<p><strong>下载链接：</strong></p>' +
-            '<input type="text" value="' + url + '" readonly style="width: 100%; padding: 5px; font-size: 12px; border: 1px solid #ccc;" onclick="this.select()">' +
+        '<div style="margin: 15px 0; font-size: 12px; color: rgba(226,201,197,.7);">' +
+            '<p style="color:#e7ad62;"><strong>下载链接：</strong></p>' +
+            '<input type="text" value="' + url + '" readonly style="width: 100%; box-sizing: border-box; padding: 8px 10px; font-size: 12px; border: 1px solid rgba(231,173,98,0.5); background: rgba(23,20,31,0.7); color: #f6e1d3; border-radius: 6px; outline: none;" onclick="this.select()">' +
         '</div>' +
-        '<div style="margin: 15px 0; font-size: 12px; color: #666;">' +
-            '<p><strong>使用说明：</strong></p>' +
+        '<div style="margin: 15px 0; font-size: 12px; color: rgba(226,201,197,.7);">' +
+            '<p style="color:#e7ad62;"><strong>使用说明：</strong></p>' +
             '<p>• 点击"在新标签页中打开"，然后右键点击播放器选择"另存为"</p>' +
             '<p>• 复制链接后，可以使用下载工具（如迅雷、IDM等）进行下载</p>' +
             '<p>• 或者直接右键点击链接选择"另存为"</p>' +
@@ -745,6 +879,12 @@ function loadList(list) {
     rem.mainList.html('');   // 清空列表中原有的元素
     addListhead();      // 向列表中加入列表头
 
+    // 搜索结果列表：恢复高亮关键词；其他列表：清空
+    if (list === 0 && musicList[0].searchKeyword) {
+        rem.searchKeyword = musicList[0].searchKeyword;
+    } else {
+        rem.searchKeyword = '';
+    }
     if (musicList[list].item.length == 0) {
         addListbar("nodata");   // 列表中没有数据
     } else {
@@ -816,12 +956,24 @@ function addListhead() {
 // 列表中新增一项
 // 参数：编号、名字、歌手、专辑
 function addItem(no, name, auth, album) {
+    var kw = rem.searchKeyword || '';
+    var re = null;
+    if (kw) {
+        var esc = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        re = new RegExp('(' + esc + ')', 'gi');
+    }
+
+    function highlight(text) {
+        if (!re || !text) return text;
+        return String(text).replace(re, '<span class="hl-keyword">$1</span>');
+    }
+
     var html = '<div class="list-item" data-no="' + (no - 1) + '">' +
         '    <span class="list-num">' + no + '</span>' +
         '    <span class="list-mobile-menu"></span>' +
-        '    <span class="music-album">' + album + '</span>' +
-        '    <span class="auth-name">' + auth + '</span>' +
-        '    <span class="music-name">' + name + '</span>' +
+        '    <span class="music-album">' + highlight(album) + '</span>' +
+        '    <span class="auth-name">' + highlight(auth) + '</span>' +
+        '    <span class="music-name">' + highlight(name) + '</span>' +
         '</div>';
     rem.mainList.append(html);
 }

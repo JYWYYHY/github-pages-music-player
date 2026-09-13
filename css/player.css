@@ -3,6 +3,17 @@
  * GithubMusicPlayer v3.0
  * 播放器样式表文件
  *************************************************/
+
+:root {
+    --night: #17141f;
+    --ink: #29202d;
+    --plum: #493744;
+    --mist: rgba(226, 201, 197, 0.76);
+    --mist-light: rgba(246, 225, 211, 0.88);
+    --gold: #e7ad62;
+    --ember: #bd684e;
+}
+
 blockquote, body, button, dd, dl, dt, fieldset, form, h1, h2, h3, h4, h5, h6, hr, html, input, lengend, li, ol, p, pre, td, textarea, th, ul {
     margin: 0;
     padding: 0
@@ -37,11 +48,11 @@ table {
     border-spacing: 0
 }
 a {
-    color: #333;
+    color: var(--mist-light);
     text-decoration: none
 }
 a:hover {
-    color: #31c27c;
+    color: var(--gold);
     text-decoration: none
 }
 a:focus, button:focus, input:focus {
@@ -59,20 +70,15 @@ a:focus, button:focus, input:focus {
 html,body{
     height: 100%;
     width: 100%;
-    background-color: #777970;
+    background-color: var(--night);
     overflow: hidden;
 }
 body {
-    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ba43a8+0,ea4fce+62,537bad+100&amp;0.38+0,0.17+61,0.8+100 */
-    /* IE9 SVG, needs conditional override of 'filter' to 'none' */
-    background: #000000;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#7f7280', endColorstr='#000000');
-    background-image: -webkit-linear-gradient(200deg, #7f7280, #000000);
-    background-image: -moz-linear-gradient(200deg, #7f7280, #000000);
-    background-image: -o-linear-gradient(200deg, #7f7280, #000000);
-    background-image: -ms-linear-gradient(200deg, #7f7280, #000000);
-    background-image: linear-gradient(200deg, #7f7280, #000000);
-    
+    color: var(--mist-light);
+    background-color: var(--night);
+    background-image:
+        radial-gradient(circle at 50% 12%, rgba(231, 173, 98, 0.16), transparent 34rem),
+        linear-gradient(135deg, #17141f, #493744);
     overflow: hidden;
 }
 /* 模糊图像层 */
@@ -134,12 +140,12 @@ body {
     -ms-transition: all 0.25s ease;
     display: inline-block;
     font-size: 23px;
-    color: #829194;
+    color: var(--mist);
     cursor: pointer;
     margin: 10px 20px;
 }
 .logo:hover {
-    color: #fff;
+    color: var(--gold);
 }
 
 /* 宽度约束容器 */
@@ -191,18 +197,19 @@ body {
     display: inline-block;
     position: relative;
     border-radius: 2px;
-    border: 1px solid #fff;
-    border: 1px solid rgba(150,150,150,.5);
-    color: #fff;
-    opacity: .8;
-    filter: alpha(opacity=80);
+    border: 1px solid rgba(231, 173, 98, 0.5);
+    color: var(--mist-light);
+    background: rgba(73, 55, 68, 0.35);
+    opacity: .9;
+    filter: alpha(opacity=90);
     cursor: pointer;
     font-size: 14px;
     padding: 6px 25px;
     margin: 0 2px;
 }
 .btn:hover {
-    border: 1px solid #fff;
+    border: 1px solid var(--gold);
+    color: var(--gold);
     opacity: 1;
     filter: alpha(opacity=100);
 }
@@ -225,19 +232,28 @@ body {
 }
 .search-group>input {
     padding: 5px;
-    border: 1px solid #a7a1a1;
+    border: 1px solid rgba(231, 173, 98, 0.5);
+    background-color: rgba(41, 32, 45, 0.5);
+    color: var(--mist-light);
     height: 35px;
     width: 80%;
+    outline: none;
 }
 .search-group>button {
-    border: 1px solid #a7a1a1;
-    background-color: #eee;
+    border: 1px solid rgba(231, 173, 98, 0.5);
+    background-color: rgba(73, 55, 68, 0.6);
+    color: var(--mist-light);
     height: 35px;
     margin-left: -1px;
     width: 20%;
     white-space: nowrap;
     text-overflow: clip;
     overflow: hidden;
+    cursor: pointer;
+}
+.search-group>button:hover {
+    background-color: var(--gold);
+    color: var(--ink);
 }
 .radio-group>label {
     margin-right: 10px;
@@ -278,18 +294,17 @@ body {
     width: 100%;
     height: 50px;
     line-height: 50px;
-    color: #bdbdbe;
-    color: rgba(225,225,225,.8);
+    color: var(--mist);
     font-size: 14px;
     overflow: hidden;
-    border-bottom: 1px solid rgba(150,150,150,.1);
+    border-bottom: 1px solid rgba(231, 173, 98, 0.12);
     cursor: default;
     position: relative;
 }
 
 /* 正在播放的那项 */
 .list-playing {
-    color: #fff;
+    color: var(--gold);
 }
 
 /* 列表数字 */
@@ -425,21 +440,21 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 16px;
-    color: #666;
+    color: var(--mist);
     font-weight: bold;
 }
 
 .icon-favorite.favorited:before {
     content: "♥";
-    color: #ff4757;
+    color: var(--gold);
 }
 
 .icon-favorite:hover:before {
-    color: #333;
+    color: var(--gold);
 }
 
 .icon-favorite.favorited:hover:before {
-    color: #ff3838;
+    color: #f3c985;
 }
 
 /* 分享弹窗中的链接框 */
@@ -501,7 +516,7 @@ body {
     -o-text-overflow: ellipsis;
     overflow: hidden;
     margin-bottom: 10px;
-    color: #fff;
+    color: var(--mist-light);
     cursor: pointer;
     font-size: 12px;
 }
@@ -512,14 +527,14 @@ body {
     text-align: center;
     line-height: 40px;
     height: 40px;
-    color: #C5C5C5;
-    background-color: rgba(0, 0, 0, 0.12);
+    color: var(--mist);
+    background-color: rgba(73, 55, 68, 0.4);
 }
 .login-btn {
     cursor: pointer;
 }
 .login-btn:hover {
-    color: #31c27c;
+    color: var(--gold);
 }
 
 /* 以下是界面右侧 css 样式 */
@@ -529,32 +544,34 @@ body {
     width: 400px;
     float: right;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    box-sizing: border-box;
 }
 
 /* 歌曲封面区域 */
 .cover {
     position: relative;
-    display: block;
-    width: 186px;
-    height: 186px;
-    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 186px;        /* 高度固定 */
+    width: auto;          /* 宽度跟随图片 */
+    max-width: 100%;      /* 防止超宽图片溢出 .player */
+    margin: 0 auto;
+    flex-shrink: 0;
 }
 
-.cover:after {
-    content: "";
-    position: absolute;
-    left: 9px;
-    top: 0;
-    width: 201px;
-    height: 180px;
-    background: url(../images/album_cover_player.png) 0 0 no-repeat;
-    pointer-events: none;
-}
 /* 歌曲封面图片 */
 .music-cover {
-    vertical-align: middle;
-    width: 186px;
-    height: 186px;
+    display: block;
+    height: 100%;         /* 撑满容器高度 186px */
+    width: auto;          /* 宽度按原始比例 */
+    max-width: 100%;
+    border-radius: 12px;
+    object-fit: contain;
 }
 
 /* 歌词显示区域 */
@@ -566,8 +583,7 @@ body {
     bottom: 10px;
     overflow: hidden;
     text-align: center;
-    color: #bdbdbe;
-    color: rgba(225,225,225,.8);
+    color: var(--mist);
     line-height: 28px;
     padding: 20px 0;
 }
@@ -584,10 +600,11 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.6;    /* 可选：让两行间距更舒服 */
 }
 /* 正在播放的那一句歌词 */
 #lyric .lplaying {
-    color: #31c27c;
+    color: var(--gold);
 }
 /* 歌词显示区显示的提示语(如加载中、无歌词等) */
 .lyric-tip {
@@ -610,11 +627,11 @@ body {
     right: 45px;
     bottom: 10px;
     cursor: pointer;
-    color: #fff;
+    color: var(--mist-light);
     text-align: center;
     line-height: 26px;
     font-weight: bold;
-    background-color: #353535;
+    background-color: rgba(41, 32, 45, 0.75);
     opacity: 0.3;
     filter: Alpha(opacity=30);
     font-size: 14px;
@@ -642,13 +659,13 @@ body {
     right: 10px;
     bottom: 10px;
     cursor: pointer;
-    color: #fff;
+    color: var(--mist-light);
     text-align: center;
     line-height: 26px;
     font-weight: bold;
     background-image: url(../images/player.png);
     background-position: -28px -367px;
-    background-color: #353535;
+    background-color: rgba(41, 32, 45, 0.75);
     opacity: 0.3;
     filter: Alpha(opacity=30);
 }
@@ -665,9 +682,9 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: #222;
+    background: radial-gradient(circle at 50% 20%, #2a2130, #17141f 70%);
     z-index: 9999;
-    color: #fff;
+    color: var(--mist-light);
     font-family: 'Microsoft YaHei', sans-serif;
 }
 
@@ -688,12 +705,13 @@ body {
     font-size: 28px;
     font-weight: bold;
     margin-bottom: 8px;
-    color: #fff;
+    color: var(--gold);
+    text-shadow: 0 2px 18px rgba(231, 173, 98, 0.35);
 }
 
 .fullscreen-song-artist {
     font-size: 18px;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--mist);
 }
 
 .exit-fullscreen-btn {
@@ -736,7 +754,7 @@ body {
 #fullscreen-lyric li {
     font-size: 24px;
     line-height: 2.5;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--mist);
     transition: all 0.5s ease;
     padding: 15px 0;
     margin: 10px 0;
@@ -744,11 +762,11 @@ body {
 }
 
 #fullscreen-lyric .lplaying {
-    color: #31c27c;
+    color: var(--gold);
     font-size: 32px;
     font-weight: bold;
-    text-shadow: 0 0 10px rgba(49, 194, 124, 0.5);
-    background: rgba(49, 194, 124, 0.1);
+    text-shadow: 0 0 14px rgba(231, 173, 98, 0.55);
+    background: rgba(231, 173, 98, 0.1);
     backdrop-filter: blur(5px);
     transform: scale(1.05);
 }
@@ -764,21 +782,21 @@ body {
 }
 
 .fullscreen-lyric-content::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(231, 173, 98, 0.35);
     border-radius: 4px;
 }
 
 .fullscreen-lyric-content::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(231, 173, 98, 0.6);
 }
 
 /* 标题 */
 .info-title {
-    color: #B2AFAF
+    color: var(--mist);
 }
 .info-btn {
     cursor: pointer;
-    color: #31c27c;
+    color: var(--gold);
 }
 .info-btn:hover {
     text-decoration: underline;
@@ -938,13 +956,13 @@ body {
     height: 2px; 
     margin-top: -1px; 
     border-radius: 2px;
-    background-color: #808284;
+    background-color: rgba(231, 173, 98, 0.22);
     overflow: hidden;
 }
 /* 进度条已完成区域 */
 .mkpgb-cur {
     position: absolute;
-    background-color: #D8D8D8; 
+    background-color: var(--gold);
     width: 0; 
     height: 2px; 
     top: 50%;
@@ -960,7 +978,8 @@ body {
 .mkpgb-dot {
     width: 10px; 
     height: 10px; 
-    background-color: #fff; 
+    background-color: var(--gold);
+    box-shadow: 0 0 8px rgba(231, 173, 98, 0.7);
     border-radius: 5px; 
     overflow: hidden; 
     position: absolute; 
@@ -979,13 +998,191 @@ body {
     cursor: default;
 }
 
-/* 闪动效果作者：qiuye */
+/* 闪动效果 */
 .dot-move {
-    -webkit-box-shadow: 0 0 20px #fff;
+    -webkit-box-shadow: 0 0 20px var(--gold);
     -moz-animation: dot-move 3s linear 2s infinite;
     -webkit-animation: dot-move 3s linear 2s infinite;
     -o-animation: dot-move 3s linear 2s infinite;
     -ms-animation: dot-move 3s linear 2s infinite;
 }
-@-webkit-keyframes dot-move{0%{-webkit-box-shadow: 0 0 20px #fff;}25%{-webkit-box-shadow: 0 0 10px #fff;}50%{-webkit-box-shadow: 0 0 0px #fff;}75%{-webkit-box-shadow: 0 0 10px #fff;}100%{-webkit-box-shadow: 0 0 20px #fff;}}
-@keyframes dot-move{0%{-webkit-box-shadow: 0 0 10px #363333;}25%{-webkit-box-shadow: 0 0 7px #363333;}50%{-webkit-box-shadow: 0 0 0px #fff;}75%{-webkit-box-shadow: 0 0 6px #fff;}100%{-webkit-box-shadow: 0 0 10px #363333;}}
+@-webkit-keyframes dot-move{
+    0%{-webkit-box-shadow: 0 0 20px var(--gold);}
+    25%{-webkit-box-shadow: 0 0 10px var(--gold);}
+    50%{-webkit-box-shadow: 0 0 0px var(--gold);}
+    75%{-webkit-box-shadow: 0 0 10px var(--gold);}
+    100%{-webkit-box-shadow: 0 0 20px var(--gold);}
+}
+@keyframes dot-move{
+    0%{-webkit-box-shadow: 0 0 10px rgba(231,173,98,.4);}
+    25%{-webkit-box-shadow: 0 0 7px rgba(231,173,98,.4);}
+    50%{-webkit-box-shadow: 0 0 0px var(--gold);}
+    75%{-webkit-box-shadow: 0 0 6px var(--gold);}
+    100%{-webkit-box-shadow: 0 0 10px rgba(231,173,98,.4);}
+}
+
+/* ========== layer 弹窗适配深色主题 ========== */
+
+.layui-layer {
+    background-color: #29202d !important;
+    border: 1px solid rgba(231, 173, 98, 0.4) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.55) !important;
+    overflow: visible !important;
+}
+
+/* 标题栏：背景色 + 上圆角 */
+.layui-layer-title {
+    background-color: #493744 !important;
+    color: #e7ad62 !important;
+    border-bottom: 1px solid rgba(231, 173, 98, 0.3) !important;
+    font-weight: 500;
+    border-top-left-radius: 9px !important;
+    border-top-right-radius: 9px !important;
+}
+
+/* 内容区：背景色 + 圆角 + 裁切内容 */
+.layui-layer-content {
+    background-color: #29202d !important;
+    color: rgba(246, 225, 211, 0.88) !important;
+    border-radius: 9px !important;
+    background-clip: padding-box !important;
+}
+
+/* 无标题时，内容区在最上方，需要上圆角 */
+.layui-layer > .layui-layer-content:first-child {
+    border-top-left-radius: 9px !important;
+    border-top-right-radius: 9px !important;
+}
+
+/* 底部按钮区：背景色 + 下圆角 */
+.layui-layer-btn {
+    background-color: #29202d !important;
+    border-top: 1px solid rgba(231, 173, 98, 0.2) !important;
+    border-bottom-left-radius: 9px !important;
+    border-bottom-right-radius: 9px !important;
+}
+
+/* 无按钮时，内容区在最下方，需要下圆角 */
+.layui-layer > .layui-layer-content:last-child {
+    border-bottom-left-radius: 9px !important;
+    border-bottom-right-radius: 9px !important;
+}
+
+.layui-layer-content {
+    background-color: #29202d !important;
+    color: rgba(246, 225, 211, 0.88) !important;
+}
+
+.layui-layer-content .info-title {
+    color: #e7ad62 !important;
+}
+
+.layui-layer-content .info-btn {
+    color: #e7ad62 !important;
+}
+
+.layui-layer-content .info-btn:hover {
+    color: #f3c985 !important;
+}
+
+.layui-layer-btn {
+    background-color: #29202d !important;
+    border-top: 1px solid rgba(231, 173, 98, 0.2) !important;
+}
+
+.layui-layer-btn a {
+    background-color: #e7ad62 !important;
+    color: #29202d !important;
+    border-color: #e7ad62 !important;
+}
+
+.layui-layer-btn a:hover {
+    background-color: #f3c985 !important;
+    color: #29202d !important;
+}
+
+.layui-layer-content .share-url {
+    background-color: rgba(23, 20, 31, 0.7) !important;
+    color: #f6e1d3 !important;
+    border: 1px solid rgba(231, 173, 98, 0.5) !important;
+}
+
+.layui-layer-content .share-tips {
+    color: rgba(226, 201, 197, 0.6) !important;
+}
+
+.layui-layer-msg {
+    background-color: #29202d !important;
+    color: rgba(246, 225, 211, 0.88) !important;
+    border: 1px solid rgba(231, 173, 98, 0.4) !important;
+    box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.55) !important;
+}
+
+.layui-layer-prompt .layui-layer-input {
+    background-color: rgba(23, 20, 31, 0.7) !important;
+    color: #f6e1d3 !important;
+    border: 1px solid rgba(231, 173, 98, 0.5) !important;
+}
+
+.layui-layer-setwin {
+    z-index: 9999;
+}
+
+/* 修复关闭按钮凸出后，内容区溢出弹窗圆角 */
+.layui-layer > .layui-layer-content {
+    border-radius: 9px !important;
+}
+
+/* 保证关闭按钮盖在内容之上，不被遮住 */
+.layui-layer-setwin {
+    z-index: 10;
+}
+
+.layui-layer > .layui-layer-content {
+    border-radius: 9px !important;
+    overflow: auto !important;   /* 保留滚动 */
+    background-clip: padding-box !important;  /* 关键：让背景也裁到圆角内 */
+}
+/* layer 弹窗适配深色主题 */
+
+/* 搜索结果关键词高亮 */
+.hl-keyword {
+    color: #e7ad62;
+    font-weight: 700;
+}
+
+/* ========== 用 CSS 替代 layer 的绿勾图标（ico1） ========== */
+
+.layui-layer-dialog .layui-layer-ico1,
+.layui-layer-ico1 {
+    background-image: none !important;
+    background-color: transparent !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    box-sizing: border-box;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-family: Arial, "Microsoft YaHei", sans-serif !important;
+    position: relative;
+    border: 2px solid #e7ad62;
+    box-shadow:
+        0 0 12px rgba(231, 173, 98, 0.55),
+        inset 0 0 8px rgba(231, 173, 98, 0.25);
+    animation: layerCheckPulse 1.8s ease-in-out infinite;
+}
+
+/* 勾：用两条线拼，比字符更锐利 */
+.layui-layer-dialog .layui-layer-ico1::before,
+.layui-layer-ico1::before {
+    content: "";
+    display: block;
+    width: 14px;
+    height: 8px;
+    border-left: 3px solid #e7ad62;
+    border-bottom: 3px solid #e7ad62;
+    transform: rotate(-45deg) translate(1px, -1px);
+    border-radius: 1px;
+}

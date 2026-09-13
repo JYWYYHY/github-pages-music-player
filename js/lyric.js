@@ -20,12 +20,13 @@ async function lyricCallback(str, id) {
         rem.lyric = await parseLocalLyric(str);
     } catch (error) {
         console.error(error);
+        lyricTip('暂无歌词');
         return false;
     }
     // rem.lyric = parseLyric(str);    // 解析获取到的歌词
 
     if (rem.lyric === '') {
-        lyricTip('没有歌词');
+        lyricTip('暂无歌词');
         return false;
     }
 
@@ -78,10 +79,22 @@ function scrollLyric(time) {
     }
     rem.lastLyric = time;  // 记录方便下次使用
     $(".lplaying").removeClass("lplaying");     // 移除其余句子的正在播放样式
-    $(".lrc-item[data-no='" + i + "']").addClass("lplaying");    // 加上正在播放样式
 
-    var scroll = (lyricArea.children().height() * i) - ($(".lyric").height() / 2);
-    lyricArea.stop().animate({ scrollTop: scroll }, 1000);  // 平滑滚动到当前歌词位置(更改这个数值可以改变歌词滚动速度，单位：毫秒)
+    var $target = $(".lrc-item[data-no='" + i + "']");
+    $target.addClass("lplaying");    // 加上正在播放样式
+
+    // 基于 offset() 换算滚动位置，兼容 padding、单行/多行歌词
+    var targetTop = $target.offset().top - lyricArea.offset().top + lyricArea.scrollTop();
+    var targetHeight = $target.outerHeight(true);
+    var containerHeight = lyricArea.height();
+    var scroll = targetTop - (containerHeight - targetHeight) / 2;
+
+    // 边界裁剪，防止滚到负数或超出可滚动范围
+    if (scroll < 0) scroll = 0;
+    var maxScroll = lyricArea[0].scrollHeight - containerHeight;
+    if (scroll > maxScroll) scroll = maxScroll;
+
+    lyricArea.stop().animate({ scrollTop: scroll }, 1000);
 
     // 同步全屏歌词
     if (typeof syncFullscreenLyric === 'function') {
@@ -115,13 +128,23 @@ function parseLyric(lrc) {
         var timeReg = /\[\d*:\d*((\.|\:)\d*)*\]/g;
         var timeRegExpArr = lyric.match(timeReg);
         if (!timeRegExpArr) continue;
-        var clause = lyric.replace(timeReg, '');
+        var clause = lyric.replace(timeReg, '').trim();
+        if (clause === '') continue;    // 跳过纯时间戳的空行
         for (var k = 0, h = timeRegExpArr.length; k < h; k++) {
             var t = timeRegExpArr[k];
             var min = Number(String(t.match(/\[\d*/i)).slice(1)),
                 sec = Number(String(t.match(/\:\d*/i)).slice(1));
             var time = min * 60 + sec;
-            lrcObj[time] = clause;
+
+            if (lrcObj[time] === undefined) {
+                lrcObj[time] = clause;
+            } else {
+                // 同一时间戳已有内容，检查是否重复，不重复则用 <br> 拼接
+                var parts = lrcObj[time].split('<br>');
+                if (parts.indexOf(clause) === -1) {
+                    lrcObj[time] = lrcObj[time] + '<br>' + clause;
+                }
+            }
         }
     }
     return lrcObj;
