@@ -16,7 +16,7 @@ var mkPlayer = {
     mdotshine: false,   // 是否开启[移动端]播放进度条的小点闪动效果[不支持IE](true/false)
     volume: 0.6,        // 默认音量值(0~1之间)
     version: "v3.0",    // 播放器当前版本号(仅供调试)
-    debug: true   // 是否开启调试模式(true/false)
+    debug: false   // 是否开启调试模式(true/false)
 };
 
 
