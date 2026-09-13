@@ -7,19 +7,6 @@
         "creatorAvatar": "images/avatar.jpg",
         "item": [
             {
-                "id": "25a6171ce0eefb6f7d9be868e76aec4a",
-                "name": "#1f1e33 - かめりあ",
-                "artist": "かめりあ",
-                "album": "#1f1e33",
-                "url": "static/%231f1e33%20-%20%E3%81%8B%E3%82%81%E3%82%8A%E3%81%82.mp3",
-                "pic": "static/%231f1e33%20-%20%E3%81%8B%E3%82%81%E3%82%8A%E3%81%82.jpg",
-                "lyric": "",
-                "source": "local",
-                "url_id": "25a6171ce0eefb6f7d9be868e76aec4a",
-                "pic_id": "25a6171ce0eefb6f7d9be868e76aec4a",
-                "lyric_id": ""
-            },
-            {
                 "id": "4ac0c54dec85407400e28ecc5995753c",
                 "name": "$ylvie - 闹闹丶、心华",
                 "artist": "闹闹丶、心华",
