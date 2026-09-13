@@ -16,6 +16,7 @@ import os
 import re
 import json
 import hashlib
+from urllib.parse import quote          # ← 新增
 from mutagen.easyid3 import EasyID3
 from datetime import datetime
 from color_log.clog import log
@@ -44,6 +45,16 @@ def args() :
     )
     parser.add_argument('-i', '--ignores', dest='ignores', type=str, default="", help='忽略目录列表（关键字即可），多个用英文逗号分隔')
     return parser.parse_args()
+
+
+def url_encode_path(path):
+    """
+    对路径做 URL 编码，但保留 / 分隔符。
+    这样 # ? & 空格 中文 都会被正确编码，浏览器请求时不会被截断。
+    """
+    if not path:
+        return ""
+    return quote(path, safe="/")
 
 
 def main(args) :
@@ -85,7 +96,7 @@ def main(args) :
             lyric_path = f"{rel_dir}/{music_name}{LYRIC_SUFFIX}"
             pic_path = f"{rel_dir}/{music_name}{PIC_SUFFIX}"
 
-            # 检查歌词文件和封面图片文件是否存在
+            # 检查歌词文件和封面图片文件是否存在（用未编码的原始路径判断）
             if not os.path.exists(os.path.join(WORK_DIR, lyric_path)) :
                 lyric_path = ""
             if not os.path.exists(os.path.join(WORK_DIR, pic_path)) :
@@ -100,15 +111,15 @@ def main(args) :
                 artist = ""
                 album = ""
 
-            # 创建 Music 对象
+            # 创建 Music 对象（对路径字段做 URL 编码）
             music = Music(
                 id=calculate_md5(absolute_path),
                 name=music_name,
                 artist=artist,
                 album=album,
-                pic=pic_path,
-                url=rel_path,
-                lyric=lyric_path
+                pic=url_encode_path(pic_path),
+                url=url_encode_path(rel_path),
+                lyric=url_encode_path(lyric_path)
             )
             musiclist.add(music)
 
@@ -120,7 +131,9 @@ def main(args) :
 
 
 def calculate_md5(file_path):
-    return hashlib.md5(file_path.encode()).hexdigest().lower()
+    # 用相对路径而非绝对路径，避免不同机器生成不同 id
+    rel = os.path.relpath(file_path, WORK_DIR).replace("\\", "/")
+    return hashlib.md5(rel.encode(DEFAULT_ENCODING)).hexdigest().lower()
 
 
 def now() :

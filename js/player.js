@@ -5,7 +5,7 @@
 // 播放器功能配置
 var mkPlayer = {
     api: "api.php", // api地址（废弃，Github Page 不支持）
-    githubAPI: "./static/music_list_20260905132023.json", // Github Page 读取歌单的文件位置
+    githubAPI: "./static/music_list_20260913124919.json", // Github Page 读取歌单的文件位置
     loadcount: 20,  // 搜索结果一次加载多少条
     method: "GET",     // 数据传输方式(POST/GET)
     defaultlist: 3,    // 默认要显示的播放列表编号
@@ -16,7 +16,7 @@ var mkPlayer = {
     mdotshine: false,   // 是否开启[移动端]播放进度条的小点闪动效果[不支持IE](true/false)
     volume: 0.6,        // 默认音量值(0~1之间)
     version: "v3.0",    // 播放器当前版本号(仅供调试)
-    debug: false   // 是否开启调试模式(true/false)
+    debug: true   // 是否开启调试模式(true/false)
 };
 
 
