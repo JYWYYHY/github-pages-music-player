@@ -54,55 +54,17 @@ var musicList = [
     },
     // 以上四个系统预留列表请勿更改，否则可能导致程序无法正常运行！
     //*********************************************
-    // 自定义列表，手动创建列表并添加歌曲信息
+    // 自定义列表
+    // 注意：这里的元信息（id / name / cover）是"占位配置"，
+    //       实际歌曲数据由 static/music_list_*.json 提供，
+    //       通过 ajax.js 的 loadLocalMusicList() 按 id 匹配加载。
+    //       所以 id 必须和 json 里的 id 一致，不要随便改。
     {
-        id: "9527",
-        name: "Github 歌单",        // 播放列表名字
-        cover: "images/album.png", // 播放列表封面图像
-        creatorName: "EXP",        // 列表创建者名字(暂时没用到，可空)
-        creatorAvatar: "EXP",      // 列表创建者头像(暂时没用到，可空)
-        item: [                 // 这里面放歌曲（除非调试，否则这里不要手动添加，不然不会自动加载 music_list_*.json）
-            /*
-                {
-                    id: "964fc8fd474936dc1eb50654d14703a9",
-                    name: "brave heart - 初代进化曲",
-                    artist: "brave heart",
-                    album: "",
-                    url: "static/动漫/brave heart - 初代进化曲.mp3",
-                    pic: "static/动漫/brave heart - 初代进化曲.jpg",
-                    lyric: "static/动漫/brave heart - 初代进化曲.lrc",
-                    source: "local",
-                    url_id: "964fc8fd474936dc1eb50654d14703a9",
-                    pic_id: "964fc8fd474936dc1eb50654d14703a9",
-                    lyric_id: "964fc8fd474936dc1eb50654d14703a9"
-                },
-                {
-                    id: "55503cb295eecbf1bc2bed651583d0af",
-                    name: "妖精的尾巴 - 星",
-                    artist: "妖精的尾巴",
-                    album: "「FAIRY TAIL」ORIGINAL SOUNDTRACK",
-                    url: "static/动漫/妖精的尾巴 - 星.mp3",
-                    pic: "static/动漫/妖精的尾巴 - 星.jpg",
-                    lyric: "static/动漫/妖精的尾巴 - 星.lrc",
-                    source: "local",
-                    url_id: "55503cb295eecbf1bc2bed651583d0af",
-                    pic_id: "55503cb295eecbf1bc2bed651583d0af",
-                    lyric_id: "55503cb295eecbf1bc2bed651583d0af"
-                },
-                {
-                    id: "666b6d82bef4b5ab0c02907a50bd1b82",
-                    name: "程响 - 可能",
-                    artist: "程响",
-                    album: "",
-                    url: "static/流行/程响 - 可能.mp3",
-                    pic: "static/流行/程响 - 可能.jpg",
-                    lyric: "static/流行/程响 - 可能.lrc",
-                    source: "local",
-                    url_id: "666b6d82bef4b5ab0c02907a50bd1b82",
-                    pic_id: "666b6d82bef4b5ab0c02907a50bd1b82",
-                    lyric_id: "666b6d82bef4b5ab0c02907a50bd1b82"
-                }  // 列表中最后一首歌大括号后面不要加逗号
-            */
-        ]
+        id: "9527",                    // 必须与 json 里的 id 一致
+        name: "Github 歌单",            // 加载前的占位名，json 加载后会覆盖
+        cover: "images/album.png",     // 加载前的占位封面，json 加载后会覆盖
+        creatorName: "EXP",
+        creatorAvatar: "EXP",
+        item: []                       // 留空，由 loadLocalMusicList 填充
     }
 ];
