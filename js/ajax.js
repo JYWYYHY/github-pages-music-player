@@ -211,6 +211,8 @@ function ajaxPic(music, callback) {
 
 // 加载本地歌单
 // 参数：歌单 id, 歌单存储 id，回调函数
+// 加载本地歌单
+// 参数：歌单 id, 歌单存储 id，回调函数
 function loadLocalMusicList(lid, id, callback) {
     if (!lid) return false;
 
@@ -224,19 +226,36 @@ function loadLocalMusicList(lid, id, callback) {
         type: mkPlayer.method,
         url: mkPlayer.githubAPI,
         dataType: "json",
+        timeout: 15000,     // 15 秒超时
         complete: function (XMLHttpRequest, textStatus) {
             musicList[id].isloading = false;    // 列表已经加载完了
-        },  // complete
+        },
         success: function (data) {
-            jsonData = data[0];
+            // ① 结构校验：必须是数组，且第一项存在
+            if (!Array.isArray(data) || !data[0]) {
+                console.error('歌单 json 结构不对，期望 [ {...} ]，实际：', data);
+                layer.msg('歌单文件格式错误，请检查 static/music_list_*.json', { icon: 2, time: 3000 });
+                $(".sheet-item[data-no='" + id + "'] .sheet-name").html('<span style="color: #EA8383">格式错误</span>');
+                return;
+            }
+
+            var jsonData = data[0];    // ② 加 var，避免污染全局
+
+            // ③ 校验 item 字段
+            if (!Array.isArray(jsonData.item)) {
+                console.error('歌单缺少 item 数组：', jsonData);
+                layer.msg('歌单内容为空或格式错误', { icon: 2, time: 3000 });
+                $(".sheet-item[data-no='" + id + "'] .sheet-name").html('<span style="color: #EA8383">格式错误</span>');
+                return;
+            }
 
             // 存储歌单信息
             var tempList = {
-                id: lid,    // 列表 id
-                name: jsonData.name,   // 列表名字
-                cover: jsonData.cover,   // 列表封面
-                creatorName: jsonData.creatorName,   // 列表创建者名字
-                creatorAvatar: jsonData.creatorAvatar,   // 列表创建者头像
+                id: lid,
+                name: jsonData.name || musicList[id].name,
+                cover: jsonData.cover,
+                creatorName: jsonData.creatorName,
+                creatorAvatar: jsonData.creatorAvatar,
                 item: []
             };
 
@@ -249,30 +268,30 @@ function loadLocalMusicList(lid, id, callback) {
             // 存储歌单中的音乐信息
             for (var i = 0; i < jsonData.item.length; i++) {
                 tempList.item[i] = {
-                    id: jsonData.item[i].id,  // 音乐ID
-                    name: jsonData.item[i].name,  // 音乐名字
-                    artist: jsonData.item[i].artist, // 艺术家名字
-                    album: jsonData.item[i].album,    // 专辑名字
-                    source: jsonData.item[i].source,     // 音乐来源
-                    url_id: jsonData.item[i].url_id,  // 链接ID
-                    pic_id: jsonData.item[i].pic_id,  // 封面ID
-                    lyric_id: jsonData.item[i].lyric_id,  // 歌词ID
-                    pic: jsonData.item[i].pic + "?param=300y300",    // 专辑图片
-                    url: jsonData.item[i].url,      // 歌曲链接
-                    lyric: jsonData.item[i].lyric   // 歌词链接
+                    id: jsonData.item[i].id,
+                    name: jsonData.item[i].name,
+                    artist: jsonData.item[i].artist,
+                    album: jsonData.item[i].album,
+                    source: jsonData.item[i].source,
+                    url_id: jsonData.item[i].url_id,
+                    pic_id: jsonData.item[i].pic_id,
+                    lyric_id: jsonData.item[i].lyric_id,
+                    pic: jsonData.item[i].pic ? (jsonData.item[i].pic + "?param=300y300") : "",
+                    url: jsonData.item[i].url,
+                    lyric: jsonData.item[i].lyric
                 };
             }
 
             // 歌单用户 id 不能丢
             if (musicList[id].creatorID) {
                 tempList.creatorID = musicList[id].creatorID;
-                if (musicList[id].creatorID === rem.uid) {   // 是当前登录用户的歌单，要保存到缓存中
-                    var tmpUlist = playerReaddata('ulist');    // 读取本地记录的用户歌单
-                    if (tmpUlist) {  // 读取到了
-                        for (i = 0; i < tmpUlist.length; i++) {  // 匹配歌单
+                if (musicList[id].creatorID === rem.uid) {
+                    var tmpUlist = playerReaddata('ulist');
+                    if (tmpUlist) {
+                        for (i = 0; i < tmpUlist.length; i++) {
                             if (tmpUlist[i].id == lid) {
-                                tmpUlist[i] = tempList; // 保存歌单中的歌曲
-                                playerSavedata('ulist', tmpUlist);  // 保存
+                                tmpUlist[i] = tempList;
+                                playerSavedata('ulist', tmpUlist);
                                 break;
                             }
                         }
@@ -285,23 +304,34 @@ function loadLocalMusicList(lid, id, callback) {
 
             // 首页显示默认列表
             if (id == mkPlayer.defaultlist) loadList(id);
-            if (callback) callback(id);    // 调用回调函数
+            if (callback) callback(id);
 
             // 改变前端列表
-            $(".sheet-item[data-no='" + id + "'] .sheet-cover").attr('src', tempList.cover);    // 专辑封面
-            $(".sheet-item[data-no='" + id + "'] .sheet-name").html(tempList.name);     // 专辑名字
+            $(".sheet-item[data-no='" + id + "'] .sheet-cover").attr('src', tempList.cover);
+            $(".sheet-item[data-no='" + id + "'] .sheet-name").html(tempList.name);
 
             // 调试信息输出
             if (mkPlayer.debug) {
-                console.debug("歌单 [" + tempList.name + "] 中的音乐获取成功");
+                console.debug("歌单 [" + tempList.name + "] 中的音乐获取成功，共 " + tempList.item.length + " 首");
             }
-        },   //success
+        },
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-            layer.msg('歌单读取失败 - ' + XMLHttpRequest.status);
-            console.error(XMLHttpRequest, textStatus, errorThrown);
-            $(".sheet-item[data-no='" + id + "'] .sheet-name").html('<span style="color: #EA8383">读取失败</span>');     // 专辑名字
-        }   // error  
-    });//ajax
+            // ④ 区分超时 / 404 / 其他错误，给用户更明确的提示
+            var msg;
+            if (textStatus === 'timeout') {
+                msg = '歌单加载超时，请检查网络';
+            } else if (XMLHttpRequest.status === 404) {
+                msg = '歌单文件不存在，请检查 static/music_list_*.json 是否已上传';
+            } else if (XMLHttpRequest.status === 0) {
+                msg = '歌单加载失败，可能是网络问题';
+            } else {
+                msg = '歌单读取失败 (' + XMLHttpRequest.status + ')';
+            }
+            layer.msg(msg, { icon: 2, time: 4000 });
+            console.error('[loadLocalMusicList]', textStatus, errorThrown, XMLHttpRequest);
+            $(".sheet-item[data-no='" + id + "'] .sheet-name").html('<span style="color: #EA8383">读取失败</span>');
+        }
+    });
 }
 
 
