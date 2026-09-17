@@ -7,6 +7,7 @@ var lyricArea = $("#lyric");    // 歌词显示容器
 
 // 在歌词区显示提示语（如歌词加载中、无歌词等）
 function lyricTip(str) {
+    rem.lyric = '';    // 清空歌词数据，防止切歌瞬间残留旧歌词
     lyricArea.html("<li class='lyric-tip'>" + str + "</li>");     // 显示内容
 }
 
@@ -81,6 +82,7 @@ function scrollLyric(time) {
     $(".lplaying").removeClass("lplaying");     // 移除其余句子的正在播放样式
 
     var $target = $(".lrc-item[data-no='" + i + "']");
+    if ($target.length === 0) return false;    // 目标行还没渲染出来，跳过
     $target.addClass("lplaying");    // 加上正在播放样式
 
     // 基于 offset() 换算滚动位置，兼容 padding、单行/多行歌词

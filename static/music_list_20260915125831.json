@@ -267,6 +267,19 @@
                 "lyric_id": "574c5c4faaba88bc226e99e29e911293"
             },
             {
+                "id": "c07099d9a039215cc1d560759b6a60fa",
+                "name": "下一站 Beyond This Station - 小林未郁、HOYO-MiX",
+                "artist": "小林未郁、HOYO-MiX",
+                "album": "崩坏星穹铁道-神说要有笑（中篇） Let There Be Laughter (Part 2)",
+                "url": "static/%E4%B8%8B%E4%B8%80%E7%AB%99%20Beyond%20This%20Station%20-%20%E5%B0%8F%E6%9E%97%E6%9C%AA%E9%83%81%E3%80%81HOYO-MiX.mp3",
+                "pic": "",
+                "lyric": "",
+                "source": "local",
+                "url_id": "c07099d9a039215cc1d560759b6a60fa",
+                "pic_id": "",
+                "lyric_id": ""
+            },
+            {
                 "id": "fbdbe9882423553296e33ceb59940e15",
                 "name": "不乱不破 - Reol",
                 "artist": "HOYO-MiX、Reol",
@@ -551,6 +564,19 @@
                 "url_id": "3820dbc686244c99e30d41f3c1dd0c67",
                 "pic_id": "3820dbc686244c99e30d41f3c1dd0c67",
                 "lyric_id": "3820dbc686244c99e30d41f3c1dd0c67"
+            },
+            {
+                "id": "c60c375595868690a88524489e844376",
+                "name": "唯有追赶风的方向 - 知更鸟、HOYO-MiX、Chevy",
+                "artist": "知更鸟、HOYO-MiX、Chevy",
+                "album": "崩坏星穹铁道-唯有追赶风的方向 Only By Chasing the Wind",
+                "url": "static/%E5%94%AF%E6%9C%89%E8%BF%BD%E8%B5%B6%E9%A3%8E%E7%9A%84%E6%96%B9%E5%90%91%20-%20%E7%9F%A5%E6%9B%B4%E9%B8%9F%E3%80%81HOYO-MiX%E3%80%81Chevy.mp3",
+                "pic": "",
+                "lyric": "",
+                "source": "local",
+                "url_id": "c60c375595868690a88524489e844376",
+                "pic_id": "",
+                "lyric_id": ""
             },
             {
                 "id": "759b15732209be45ce20626514b583d6",
@@ -993,6 +1019,19 @@
                 "url_id": "c0be561390966162a70979211b02ede5",
                 "pic_id": "c0be561390966162a70979211b02ede5",
                 "lyric_id": "c0be561390966162a70979211b02ede5"
+            },
+            {
+                "id": "3bb45380500169e9bb76537f6b9159f0",
+                "name": "星拂云锦 feat. koi - S9ryne",
+                "artist": "S9ryne",
+                "album": "单曲精选集",
+                "url": "static/%E6%98%9F%E6%8B%82%E4%BA%91%E9%94%A6%20feat.%20koi%20-%20S9ryne.mp3",
+                "pic": "",
+                "lyric": "",
+                "source": "local",
+                "url_id": "3bb45380500169e9bb76537f6b9159f0",
+                "pic_id": "",
+                "lyric_id": ""
             },
             {
                 "id": "491033e748798615d62084655c7600cc",
@@ -3124,6 +3163,32 @@
                 "source": "local",
                 "url_id": "9c4ec42bb5662aad5afc725a24ced502",
                 "pic_id": "9c4ec42bb5662aad5afc725a24ced502",
+                "lyric_id": ""
+            },
+            {
+                "id": "ebbdc2d94c1155050cbf74a0b2ad7cc7",
+                "name": "Summer Dream (feat. Chevy) - Kirara Magic、Chevy",
+                "artist": "Kirara Magic、Chevy",
+                "album": "Summer Dream (feat. Chevy)",
+                "url": "static/Summer%20Dream%20%28feat.%20Chevy%29%20-%20Kirara%20Magic%E3%80%81Chevy.mp3",
+                "pic": "",
+                "lyric": "",
+                "source": "local",
+                "url_id": "ebbdc2d94c1155050cbf74a0b2ad7cc7",
+                "pic_id": "",
+                "lyric_id": ""
+            },
+            {
+                "id": "b33a8d40d778f984534bc35528051dc6",
+                "name": "Sun - Steerner、Martell",
+                "artist": "Steerner、Martell",
+                "album": "Sun",
+                "url": "static/Sun%20-%20Steerner%E3%80%81Martell.mp3",
+                "pic": "",
+                "lyric": "",
+                "source": "local",
+                "url_id": "b33a8d40d778f984534bc35528051dc6",
+                "pic_id": "",
                 "lyric_id": ""
             },
             {

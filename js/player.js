@@ -4,8 +4,7 @@
  *************************************************/
 // 播放器功能配置
 var mkPlayer = {
-    api: "api.php", // api地址（废弃，Github Page 不支持）
-    githubAPI: "./static/music_list_20260913152551.json", // Github Page 读取歌单的文件位置
+    githubAPI: "./static/music_list_20260915125831.json", // Github Page 读取歌单的文件位置
     loadcount: 20,  // 搜索结果一次加载多少条
     method: "GET",     // 数据传输方式(POST/GET)
     defaultlist: 3,    // 默认要显示的播放列表编号
@@ -46,15 +45,22 @@ function pause() {
         // 第一次点播放
         if (rem.playlist === undefined) {
             rem.playlist = rem.dislist;
-
-            musicList[1].item = musicList[rem.playlist].item; // 更新正在播放列表中音乐
-
-            // 正在播放 列表项已发生变更，进行保存
-            playerSavedata('playing', musicList[1].item);   // 保存正在播放列表
-
+            musicList[1].item = musicList[rem.playlist].item;
+            playerSavedata('playing', musicList[1].item);
             listClick(0);
+        } else if (!rem.audio[0].src) {
+            // 恢复状态后 audio 还没加载，重新走 playList
+            playList(rem.playid);
+        } else {
+            var playPromise = rem.audio[0].play();
+            if (playPromise !== undefined) {
+                playPromise.catch(function (err) {
+                    if (err.name !== 'AbortError') {
+                        console.warn('播放异常：', err);
+                    }
+                });
+            }
         }
-        rem.audio[0].play();
     }
 }
 
@@ -84,11 +90,13 @@ function orderChange() {
             layer.msg("随机播放");
             rem.order = 3;
     }
+    playerSavedata('order', rem.order);
 }
 
 // 播放
 function audioPlay() {
     rem.paused = false;     // 更新状态（未暂停）
+    playerSavedata('paused', false);
     refreshList();      // 刷新状态，显示播放的波浪
     $(".btn-play").addClass("btn-state-paused");        // 恢复暂停
 
@@ -120,6 +128,8 @@ function titleFlash(msg) {
 // 暂停
 function audioPause() {
     rem.paused = true;      // 更新状态（已暂停）
+
+    playerSavedata('paused', true);
 
     $(".list-playing").removeClass("list-playing");        // 移除其它的正在播放
 
@@ -170,9 +180,10 @@ function autoNextMusic() {
 function updateProgress() {
     // 暂停状态不管
     if (rem.paused !== false) return true;
+
     // 同步进度条
     music_bar.goto(rem.audio[0].currentTime / rem.audio[0].duration);
-    // 同步歌词显示	
+    // 同步歌词显示
     scrollLyric(rem.audio[0].currentTime);
 }
 
@@ -267,6 +278,7 @@ function playList(id) {
 
     // 记录正在播放的歌曲在正在播放列表中的 id
     rem.playid = id;
+    playerSavedata('playid', id);
 
     // 如果链接为空，则 ajax 获取数据后再播放
     if (musicList[1].item[id].url === null || musicList[1].item[id].url === "") {
@@ -337,9 +349,19 @@ function play(music) {
     try {
         rem.audio[0].pause();
         rem.audio.attr('src', music.url);
-        rem.audio[0].play();
+
+        // play() 返回 Promise，快速切歌时会被下一次 pause() 打断，
+        // 抛出 AbortError，这是正常的，静默忽略即可
+        var playPromise = rem.audio[0].play();
+        if (playPromise !== undefined) {
+            playPromise.catch(function (err) {
+                if (err.name !== 'AbortError') {
+                    console.warn('播放异常：', err);
+                }
+            });
+        }
     } catch (e) {
-        audioErr(); // 调用错误处理函数
+        audioErr();
         return;
     }
 
@@ -521,4 +543,55 @@ document.onkeydown = function showkey(e) {
     if (ctrl && key == 37) playList(rem.playid - 1);    // Ctrl+左方向键 切换上一首歌
     if (ctrl && key == 39) playList(rem.playid + 1);    // Ctrl+右方向键 切换下一首歌
     if (key == 32 && isFocus == false) pause();         // 空格键 播放/暂停歌曲
+}
+
+// 恢复上次的播放状态（歌曲 + 循环模式）
+function restorePlayState() {
+    // 1. 恢复循环模式
+    var savedOrder = playerReaddata('order');
+    if (savedOrder && [1, 2, 3].indexOf(savedOrder) !== -1) {
+        rem.order = savedOrder;
+        var orderDiv = $(".btn-order");
+        orderDiv.removeClass("btn-order-single btn-order-list btn-order-random");
+        switch (savedOrder) {
+            case 1:
+                orderDiv.addClass("btn-order-single");
+                orderDiv.attr("title", "单曲循环");
+                break;
+            case 2:
+                orderDiv.addClass("btn-order-list");
+                orderDiv.attr("title", "列表循环");
+                break;
+            case 3:
+                orderDiv.addClass("btn-order-random");
+                orderDiv.attr("title", "随机播放");
+                break;
+        }
+    } else {
+        rem.order = 1;
+    }
+
+    // 2. 恢复上次播放的歌曲（不恢复进度，从头播）
+    var savedPlayid = playerReaddata('playid');
+
+    if (savedPlayid !== null && savedPlayid !== undefined &&
+        musicList[1] && musicList[1].item && musicList[1].item[savedPlayid]) {
+
+        // 只记录状态，不触发播放
+        rem.playid = savedPlayid;
+        rem.playlist = 1;
+        rem.paused = true;      // 标记为"暂停中"，等用户点播放键
+
+        var music = musicList[1].item[savedPlayid];
+
+        // 更新封面、歌单高亮
+        changeCover(music);
+        refreshSheet();
+
+        // 歌词区显示当前歌名，提示用户点击播放
+        lyricTip('点击播放：' + music.name);
+
+        // 播放按钮显示为"暂停"样式（因为处于未播放状态，正常展示播放图标）
+        // 这里保持默认的播放图标即可，不额外操作
+    }
 }

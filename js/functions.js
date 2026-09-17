@@ -26,6 +26,9 @@ $(function () {
         console.warn('播放器调试模式已开启，正常使用时请在 js/player.js 中按说明关闭调试模式');
     }
 
+    // 启动超时兜底
+    armLoadingTimeout();
+
     rem.isMobile = isMobile.any();      // 判断是否是移动设备
     rem.webTitle = document.title;      // 记录页面原本的标题
     rem.errCount = 0;                   // 连续播放失败的歌曲数归零
@@ -166,69 +169,10 @@ $(function () {
         return true;
     });
 
-    // 点击加载更多
-    $(".music-list").on("click", ".list-loadmore", function () {
-        $(".list-loadmore").removeClass('list-loadmore');
-        $(".list-loadmore").html('加载中...');
-        ajaxSearch();
-    });
-
     // 点击专辑显示专辑歌曲
     $("#sheet").on("click", ".sheet-cover,.sheet-name", function () {
         var num = parseInt($(this).parent().data("no"));
-        // 是用户列表，但是还没有加载数据
-        if (musicList[num].item.length === 0 && musicList[num].creatorID) {
-            layer.msg('列表读取中...', { icon: 16, shade: 0.01, time: 500 }); // 0代表加载的风格，支持0-2
-            // ajax加载数据
-            ajaxPlayList(musicList[num].id, num, loadList);
-            return true;
-        }
         loadList(num);
-    });
-
-    // 点击同步云音乐
-    $("#sheet").on("click", ".login-in", function () {
-        layer.prompt(
-            {
-                title: '请输入您的网易云 UID',
-                // value: '',  // 默认值
-                btn: ['确定', '取消', '帮助'],
-                btn3: function (index, layero) {
-                    layer.open({
-                        title: '如何获取您的网易云UID？'
-                        , shade: 0.6 //遮罩透明度
-                        , anim: 0 //0-6的动画形式，-1不开启
-                        , content:
-                            '1、首先<a href="http://music.163.com/" target="_blank">点我(http://music.163.com/)</a>打开网易云音乐官网<br>' +
-                            '2、然后点击页面右上角的“登录”，登录您的账号<br>' +
-                            '3、点击您的头像，进入个人中心<br>' +
-                            '4、此时<span style="color:red">浏览器地址栏</span> <span style="color: green">/user/home?id=</span> 后面的<span style="color:red">数字</span>就是您的网易云 UID'
-                    });
-                }
-            },
-            function (val, index) {   // 输入后的回调函数
-                if (isNaN(val)) {
-                    layer.msg('uid 只能是数字', { anim: 6 });
-                    return false;
-                }
-                layer.close(index);     // 关闭输入框
-                ajaxUserList(val);
-            });
-    });
-
-    // 刷新用户列表
-    $("#sheet").on("click", ".login-refresh", function () {
-        playerSavedata('ulist', '');
-        layer.msg('刷新歌单');
-        clearUserlist();
-    });
-
-    // 退出登录
-    $("#sheet").on("click", ".login-out", function () {
-        playerSavedata('uid', '');
-        playerSavedata('ulist', '');
-        layer.msg('已退出');
-        clearUserlist();
     });
 
     // 播放、暂停按钮的处理
@@ -398,7 +342,7 @@ function searchBox() {
     layer.open({
         type: 1,
         title: '歌曲搜索',
-        area: ['380px', 'auto'],
+        area: [Math.min(380, window.innerWidth - 40) + 'px', 'auto'],
         shade: 0.5,
         shadeClose: true,
         content: tmpHtml,
@@ -549,24 +493,6 @@ function doLocalSearch(keyword, scope) {
     layer.msg('找到 ' + results.length + ' 首歌曲');
 }
 
-// 搜索提交
-function searchSubmit() {
-    var wd = $("#search-wd").val();
-    if (!wd) {
-        layer.msg('搜索内容不能为空', { anim: 6, offset: 't' });
-        $("#search-wd").focus();
-        return false;
-    }
-    rem.source = $("#music-source input[name='source']:checked").val();
-
-    layer.closeAll('page');     // 关闭搜索框
-
-    rem.loadPage = 1;   // 已加载页数复位
-    rem.wd = wd;    // 搜索词
-    ajaxSearch();   // 加载搜索结果
-    return false;
-}
-
 // 下载正在播放的这首歌
 function thisDownload(obj) {
     ajaxUrl(musicList[$(obj).data("list")].item[$(obj).data("index")], download);
@@ -623,27 +549,49 @@ function download(music) {
 
 // 专门用于GitHub Pages的下载处理
 function downloadFromGitHubPages(url, fileName, music) {
-    // 方法1: 尝试直接下载
     try {
         var aLink = document.createElement('a');
         aLink.href = url;
         aLink.download = fileName;
         aLink.target = '_blank';
-        
-        // 添加到页面并触发点击
+
         document.body.appendChild(aLink);
         aLink.click();
         document.body.removeChild(aLink);
-        
-        layer.msg('开始下载：' + music.name, { icon: 1, time: 2000 });
-        
-        // 如果2秒后下载没有开始，提供备用方案
-        setTimeout(function() {
-            showDownloadAlternatives(url, fileName, music);
-        }, 2000);
-        
+
+        // 顶部浮起一条提示，带"复制链接"入口，4 秒后自动消失
+        var $tip = $('<div style="padding:12px 18px;color:rgba(246,225,211,.92);' +
+                     'line-height:1.55;text-align:center;box-sizing:border-box;">' +
+            '<div style="font-size:14px;">开始下载：' + escapeHtml(music.name) + '</div>' +
+            '<div style="font-size:12px;opacity:.72;margin-top:6px;">' +
+            '没反应？' +
+            '<a href="javascript:;" class="dl-copy" ' +
+            'style="color:#e7ad62;text-decoration:underline;cursor:pointer;' +
+            'margin-left:2px;">复制下载链接</a>' +
+            '</div></div>');
+
+        var idx = layer.open({
+            type: 1,
+            title: false,
+            content: $tip,
+            area: 'auto',
+            offset: 't',          // 从顶部出现
+            shade: 0,             // 无遮罩
+            closeBtn: 0,          // 不显示关闭按钮
+            time: 4000,           // 4 秒自动关闭
+            anim: 5,              // 淡入
+            success: function (layero) {
+                // 绑定复制按钮（避免把 url 拼到 onclick 里出转义问题）
+                layero.find('.dl-copy').on('click', function () {
+                    copyDownloadLink(url);
+                    layer.close(idx);
+                });
+            }
+        });
+
     } catch (e) {
         console.error('直接下载失败:', e);
+        // 只有真正抛异常时，才弹备用方案
         showDownloadAlternatives(url, fileName, music);
     }
 }
@@ -674,7 +622,7 @@ function showDownloadAlternatives(url, fileName, music) {
     layer.open({
         type: 1,
         title: '下载选项',
-        area: ['500px', 'auto'],
+        area: [Math.min(500, window.innerWidth - 40) + 'px', 'auto'],
         content: content,
         btn: ['关闭'],
         btn1: function(index) {
@@ -794,8 +742,7 @@ function ajaxShare(music) {
     }
 
     var tmpHtml = '<p>' + music.artist + ' - ' + music.name + ' 的外链地址为：</p>' +
-        '<input class="share-url" onmouseover="this.focus();this.select()" value="' + music.url + '">' +
-        '<p class="share-tips">* 获取到的音乐外链有效期较短，请按需使用。</p>';
+        '<input class="share-url" onmouseover="this.focus();this.select()" value="' + music.url + '">'
 
     layer.open({
         title: '歌曲外链分享'
@@ -888,6 +835,9 @@ function loadList(list) {
     if (musicList[list].item.length == 0) {
         addListbar("nodata");   // 列表中没有数据
     } else {
+
+        // 有数据了，关掉首次加载遮罩
+        hideLoading();
 
         // 逐项添加数据
         for (var i = 0; i < musicList[list].item.length; i++) {
@@ -1091,17 +1041,10 @@ function clearSheet() {
     rem.sheetList.html('');
 }
 
-// 歌单列表底部登陆条
+// 歌单列表底部标题条
 function sheetBar() {
-    var barHtml;
-    if (playerReaddata('uid')) {
-        barHtml = '已同步 ' + rem.uname + ' 的歌单 <span class="login-btn login-refresh">[刷新]</span> <span class="login-btn login-out">[退出]</span>';
-    } else {
-        barHtml = '我的歌单 <span class="login-btn login-in">[点击同步]</span>';
-    }
-    barHtml = '<span id="sheet-bar"><div class="clear-fix"></div>' +
-        '<div id="user-login" class="sheet-title-bar">' + barHtml +
-        '</div></span>';
+    var barHtml = '<span id="sheet-bar"><div class="clear-fix"></div>' +
+        '<div id="user-login" class="sheet-title-bar">我的歌单</div></span>';
     rem.sheetList.append(barHtml);
 }
 
@@ -1176,16 +1119,6 @@ function addHis(music) {
 
 // 初始化播放列表
 function initList() {
-    // 登陆过，那就读取出用户的歌单，并追加到系统歌单的后面
-    if (playerReaddata('uid')) {
-        rem.uid = playerReaddata('uid');
-        rem.uname = playerReaddata('uname');
-        // musicList.push(playerReaddata('ulist'));
-        var tmp_ulist = playerReaddata('ulist');    // 读取本地记录的用户歌单
-
-        if (tmp_ulist) musicList.push.apply(musicList, tmp_ulist);   // 追加到系统歌单的后面
-    }
-
     // 显示所有的歌单
     for (var i = 1; i < musicList.length; i++) {
 
@@ -1224,12 +1157,6 @@ function initList() {
         addSheet(i, musicList[i].name, musicList[i].cover);
     }
 
-    // 登陆了，但歌单又没有，说明是在刷新歌单
-    if (playerReaddata('uid') && !tmp_ulist) {
-        ajaxUserList(rem.uid);
-        return true;
-    }
-
     // 首页显示默认列表
     if (mkPlayer.defaultlist >= musicList.length) mkPlayer.defaultlist = 1;  // 超出范围，显示正在播放列表
 
@@ -1237,24 +1164,9 @@ function initList() {
 
     // 显示最后一项登陆条
     sheetBar();
-}
 
-// 清空用户的同步列表
-function clearUserlist() {
-    if (!rem.uid) return false;
-
-    // 查找用户歌单起点
-    for (var i = 1; i < musicList.length; i++) {
-        if (musicList[i].creatorID !== undefined && musicList[i].creatorID == rem.uid) break;    // 找到了就退出
-    }
-
-    // 删除记忆数组
-    musicList.splice(i, musicList.length - i); // 先删除相同的
-    musicList.length = i;
-
-    // 刷新列表显示
-    clearSheet();
-    initList();
+    // 恢复上次的播放状态（等 DOM 就绪后执行）
+    setTimeout(restorePlayState, 200);
 }
 
 // 清空当前显示的列表
@@ -1306,33 +1218,31 @@ function playerReaddata(key) {
 
 // 获取收藏列表
 function getFavorites() {
-    // 优先使用localStorage，如果不支持则回退到Cookie
+    // 优先使用 localStorage（新 key）
     if (typeof Storage !== "undefined") {
         try {
-            var favorites = localStorage.getItem('musicFavorites');
+            var favorites = localStorage.getItem('mkPlayer2_favorites');
             if (favorites) {
                 var parsed = JSON.parse(favorites);
-                // 调试信息
                 if (mkPlayer.debug) {
-                    console.log('从localStorage读取收藏，共 ' + parsed.length + ' 首歌曲');
+                    console.log('从 localStorage 读取收藏，共 ' + parsed.length + ' 首');
                 }
                 return Array.isArray(parsed) ? parsed : [];
             }
         } catch (e) {
             if (mkPlayer.debug) {
-                console.error('从localStorage读取收藏列表失败:', e);
+                console.error('读取收藏失败:', e);
             }
         }
     }
-    
-    // 回退到Cookie方式（兼容性）
-    var favorites = getCookie('musicFavorites');
+
+    // 回退到 Cookie（新 key）
+    var favorites = getCookie('mkPlayer2_favorites');
     if (favorites) {
         try {
             var parsed = JSON.parse(favorites);
-            // 调试信息
             if (mkPlayer.debug) {
-                console.log('从Cookie读取收藏，共 ' + parsed.length + ' 首歌曲');
+                console.log('从 Cookie 读取收藏，共 ' + parsed.length + ' 首');
             }
             return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
@@ -1345,45 +1255,41 @@ function getFavorites() {
     return [];
 }
 
-// 保存收藏列表（优先使用localStorage）
+// 保存收藏列表（优先使用 localStorage）
 function saveFavorites(favorites) {
     var dataString = JSON.stringify(favorites);
     var success = false;
-    
-    // 优先使用localStorage
+
     if (typeof Storage !== "undefined") {
         try {
-            localStorage.setItem('musicFavorites', dataString);
+            localStorage.setItem('mkPlayer2_favorites', dataString);
             success = true;
-            // 调试信息
             if (mkPlayer.debug) {
-                console.log('保存收藏到localStorage，共 ' + favorites.length + ' 首歌曲，大小: ' + dataString.length + ' 字符');
+                console.log('保存收藏到 localStorage，共 ' + favorites.length + ' 首，大小: ' + dataString.length + ' 字符');
             }
         } catch (e) {
             if (mkPlayer.debug) {
-                console.error('localStorage保存失败:', e);
+                console.error('localStorage 保存失败:', e);
             }
         }
     }
-    
-    // 如果localStorage失败，尝试Cookie（但有大小限制）
+
+    // 失败时回退到 Cookie
     if (!success) {
         try {
-            // 检查数据大小
-            if (dataString.length > 3500) { // 留一些余量，避免超过4KB
+            if (dataString.length > 3500) {
                 if (mkPlayer.debug) {
                     console.warn('收藏数据过大 (' + dataString.length + ' 字符)，可能保存失败');
                 }
                 layer.msg('收藏数据过大，建议减少收藏数量', { icon: 2, time: 3000 });
             }
-            setCookie('musicFavorites', dataString, 365); // 保存1年
-            // 调试信息
+            setCookie('mkPlayer2_favorites', dataString, 365);
             if (mkPlayer.debug) {
-                console.log('保存收藏到Cookie，共 ' + favorites.length + ' 首歌曲，大小: ' + dataString.length + ' 字符');
+                console.log('保存收藏到 Cookie，共 ' + favorites.length + ' 首');
             }
         } catch (e) {
             if (mkPlayer.debug) {
-                console.error('Cookie保存失败:', e);
+                console.error('Cookie 保存失败:', e);
             }
             layer.msg('收藏保存失败，数据可能过大', { icon: 2, time: 3000 });
         }
@@ -1540,37 +1446,48 @@ function initFavorites() {
     loadFavoritesToPlaylist();
 }
 
-// 数据迁移：从Cookie迁移到localStorage
+// 数据迁移：把旧的 musicFavorites 迁移到 mkPlayer2_favorites
 function migrateFavoritesData() {
-    if (typeof Storage !== "undefined") {
-        // 检查localStorage中是否已有数据
-        var localData = localStorage.getItem('musicFavorites');
-        
-        if (!localData) {
-            // localStorage没有数据，检查Cookie中是否有数据需要迁移
-            var cookieData = getCookie('musicFavorites');
-            if (cookieData) {
-                try {
-                    // 验证Cookie数据的有效性
-                    var parsed = JSON.parse(cookieData);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        // 迁移数据到localStorage
-                        localStorage.setItem('musicFavorites', cookieData);
-                        
-                        // 调试信息
-                        if (mkPlayer.debug) {
-                            console.log('已将 ' + parsed.length + ' 首收藏歌曲从Cookie迁移到localStorage');
-                        }
-                        
-                        // 可选：清除Cookie中的数据（释放空间）
-                        // document.cookie = "musicFavorites=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    }
-                } catch (e) {
-                    if (mkPlayer.debug) {
-                        console.error('迁移收藏数据时解析失败:', e);
-                    }
-                }
+    if (typeof Storage === "undefined") return;
+
+    // 新 key 已经有数据 → 不迁移
+    var newData = localStorage.getItem('mkPlayer2_favorites');
+    if (newData) return;
+
+    var oldData = null;
+
+    // 先看 localStorage 里的旧 key
+    try {
+        oldData = localStorage.getItem('musicFavorites');
+    } catch (e) {}
+
+    // localStorage 没有，再看 Cookie 里的旧 key
+    if (!oldData) {
+        oldData = getCookie('musicFavorites');
+    }
+
+    if (!oldData) return;
+
+    try {
+        var parsed = JSON.parse(oldData);
+        if (Array.isArray(parsed)) {
+            // 写入新 key
+            localStorage.setItem('mkPlayer2_favorites', oldData);
+
+            // 清掉旧 key，避免重复迁移
+            localStorage.removeItem('musicFavorites');
+            document.cookie = 'musicFavorites=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+            if (mkPlayer.debug) {
+                console.log('已将 ' + parsed.length + ' 首收藏从旧 key 迁移到 mkPlayer2_favorites');
             }
+            if (parsed.length > 0) {
+                layer.msg('已迁移 ' + parsed.length + ' 首收藏', { icon: 1, time: 2000 });
+            }
+        }
+    } catch (e) {
+        if (mkPlayer.debug) {
+            console.error('迁移收藏数据失败:', e);
         }
     }
 }
@@ -1633,4 +1550,34 @@ function syncFullscreenLyric() {
         // 滚动到当前播放的歌词
         scrollFullscreenLyricToPlaying();
     }
+}
+
+// ========== 首次加载遮罩控制 ==========
+var __loadingHideTimer = null;
+
+// 隐藏加载遮罩（幂等：多次调用只执行一次淡出）
+function hideLoading() {
+    var $el = $('#loading-overlay');
+    if (!$el.length || $el.hasClass('is-hidden')) return;
+
+    $el.addClass('is-hidden');
+    // 淡出结束后彻底移除，避免占着 z-index
+    setTimeout(function () {
+        $el.remove();
+    }, 500);
+
+    if (__loadingHideTimer) {
+        clearTimeout(__loadingHideTimer);
+        __loadingHideTimer = null;
+    }
+}
+
+// 启动超时兜底：8 秒后无论如何都隐藏
+function armLoadingTimeout() {
+    __loadingHideTimer = setTimeout(function () {
+        if (mkPlayer.debug) {
+            console.warn('加载遮罩超时，强制隐藏');
+        }
+        hideLoading();
+    }, 8000);
 }

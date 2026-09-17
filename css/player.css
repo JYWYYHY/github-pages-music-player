@@ -470,10 +470,6 @@ body {
     color: #333;
     height: 35px;
 }
-.share-tips {
-    font-size: 12px;
-    color: #a9a9a9;
-}
 
 /* 列表中可以被点击的横条 */
 .list-clickable {
@@ -1185,4 +1181,45 @@ body {
     border-bottom: 3px solid #e7ad62;
     transform: rotate(-45deg) translate(1px, -1px);
     border-radius: 1px;
+}
+
+/* ========== 首次加载遮罩 ========== */
+#loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at 50% 40%, rgba(231, 173, 98, 0.08), transparent 60%),
+        linear-gradient(135deg, #17141f, #493744);
+    transition: opacity 0.45s ease;
+}
+
+#loading-overlay.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    width: 46px;
+    height: 46px;
+    border: 3px solid rgba(231, 173, 98, 0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: loadingSpin 0.9s linear infinite;
+    box-shadow: 0 0 18px rgba(231, 173, 98, 0.35);
+}
+
+@keyframes loadingSpin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    margin-top: 18px;
+    color: var(--mist);
+    font-size: 14px;
+    letter-spacing: 0.15em;
 }
