@@ -12,6 +12,21 @@
     --mist-light: rgba(246, 225, 211, 0.88);
     --gold: #e7ad62;
     --ember: #bd684e;
+
+    /* 中日西文混排字体栈：中文优先，日文 fallback */
+    --font-mix:
+        Tahoma,
+        -apple-system,
+        "PingFang SC",
+        "Hiragino Sans",
+        "Hiragino Kaku Gothic ProN",
+        "Yu Gothic",
+        "Meiryo",
+        "Microsoft YaHei",
+        "Noto Sans SC",
+        "Noto Sans JP",
+        Arial,
+        sans-serif;
 }
 
 blockquote, body, button, dd, dl, dt, fieldset, form, h1, h2, h3, h4, h5, h6, hr, html, input, lengend, li, ol, p, pre, td, textarea, th, ul {
@@ -23,8 +38,7 @@ body, button, input, select, textarea, th {
     background-color: #fff;
     font-size: 14px;
     line-height: 1.5;
-    font-family: poppin, 'PingFang SC', Tahoma, Arial, \5FAE\8F6F\96C5\9ED1, sans-serif;
-    font-family: Tahoma, Arial, \5FAE\8F6F\96C5\9ED1, sans-serif/9
+    font-family: var(--font-mix);
 }
 h1, h2, h3, h4, h5, h6 {
     font-size: 100%
@@ -582,6 +596,7 @@ body {
     color: var(--mist);
     line-height: 28px;
     padding: 20px 0;
+    font-family: var(--font-mix);
 }
 /* 歌词ul */
 #lyric {
@@ -681,7 +696,7 @@ body {
     background: radial-gradient(circle at 50% 20%, #2a2130, #17141f 70%);
     z-index: 9999;
     color: var(--mist-light);
-    font-family: 'Microsoft YaHei', sans-serif;
+    font-family: var(--font-mix);
 }
 
 .fullscreen-lyric-header {
