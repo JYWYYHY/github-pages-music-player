@@ -1,3 +1,6 @@
+pip install mutagen	用于读取歌曲元数据
+pip install Pillow	用于把 PNG 封面转成 JPG
+
 python py\extract_mp3_lyrics_cover.py static
 python py\extract_mp3_lyrics_cover.py static -r	如果 static 里面还有子文件夹
 python py\extract_mp3_lyrics_cover.py static -r -o	如果想覆盖已经存在的 .lrc 文件
