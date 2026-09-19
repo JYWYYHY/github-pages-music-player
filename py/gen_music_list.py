@@ -56,6 +56,13 @@ def url_encode_path(path):
         return ""
     return quote(path, safe="/")
 
+def safe_filename(name):
+    """
+    替换文件名中对URL不友好的字符。
+    # 会让URL截断，? 和 & 也是保留字符。
+    """
+    # 这里将 # 替换为 No，你可以根据自己的喜好修改
+    return name.replace('#', 'No')
 
 def main(args) :
     if args.ignores :
@@ -91,7 +98,12 @@ def main(args) :
             absolute_path = os.path.join(root, file)
             rel_path = os.path.relpath(absolute_path, WORK_DIR).replace("\\", "/")
             rel_dir = os.path.dirname(rel_path)
-            music_name = file[:-4]
+            absolute_path = os.path.join(root, file)
+            music_name_original = file[:-4]      # ← 原始名（含 #）
+            music_name = safe_filename(music_name_original)   # ← 磁盘安全名
+
+            rel_path = os.path.relpath(absolute_path, WORK_DIR).replace("\\", "/")
+            rel_dir = os.path.dirname(rel_path)
             
             lyric_path = f"{rel_dir}/{music_name}{LYRIC_SUFFIX}"
             pic_path = f"{rel_dir}/{music_name}{PIC_SUFFIX}"
@@ -115,6 +127,7 @@ def main(args) :
             music = Music(
                 id=calculate_md5(absolute_path),
                 name=music_name,
+                displayName=music_name_original,
                 artist=artist,
                 album=album,
                 pic=url_encode_path(pic_path),
@@ -188,9 +201,10 @@ class MusicList:
             json.dump([self.__dict__], file, ensure_ascii=False, indent=4)
 
 class Music:
-    def __init__(self, id, name, artist, album, pic, url, lyric, source="local", url_id=None, pic_id=None, lyric_id=None):
+    def __init__(self, id, name, artist, album, pic, url, lyric, source="local", url_id=None, pic_id=None, lyric_id=None, displayName=None):
         self.id = id
         self.name = name
+        self.displayName = displayName if displayName else name
         self.artist = artist
         self.album = album
         self.url = url

@@ -275,7 +275,8 @@ $(function () {
 // 展现系统列表中任意首歌的歌曲信息
 function musicInfo(list, index) {
     var music = musicList[list].item[index];
-    var tempStr = '<span class="info-title">歌名：</span>' + music.name +
+    var displayName = music.displayName || music.name;
+    var tempStr = '<span class="info-title">歌名：</span>' + displayName +
         '<br><span class="info-title">歌手：</span>' + music.artist +
         '<br><span class="info-title">专辑：</span>' + music.album;
 
@@ -533,8 +534,9 @@ function download(music) {
             }
         }
         
-        // 构建文件名
-        var fileName = music.name + ' - ' + music.artist + '.mp3';
+        // 构建文件名（用原始名，含 #）
+        var displayName = music.displayName || music.name;
+        var fileName = displayName + ' - ' + music.artist + '.mp3';
         // 清理文件名中的非法字符
         fileName = fileName.replace(/[<>:"/\\|?*]/g, '_');
         
@@ -562,7 +564,7 @@ function downloadFromGitHubPages(url, fileName, music) {
         // 顶部浮起一条提示，带"复制链接"入口，4 秒后自动消失
         var $tip = $('<div style="padding:12px 18px;color:rgba(246,225,211,.92);' +
                      'line-height:1.55;text-align:center;box-sizing:border-box;">' +
-            '<div style="font-size:14px;">开始下载：' + escapeHtml(music.name) + '</div>' +
+            '<div style="font-size:14px;">开始下载：' + escapeHtml(music.displayName || music.name) + '</div>' +
             '<div style="font-size:12px;opacity:.72;margin-top:6px;">' +
             '没反应？' +
             '<a href="javascript:;" class="dl-copy" ' +
@@ -741,7 +743,8 @@ function ajaxShare(music) {
         return;
     }
 
-    var tmpHtml = '<p>' + music.artist + ' - ' + music.name + ' 的外链地址为：</p>' +
+    var displayName = music.displayName || music.name;
+    var tmpHtml = '<p>' + music.artist + ' - ' + displayName + ' 的外链地址为：</p>' +
         '<input class="share-url" onmouseover="this.focus();this.select()" value="' + music.url + '">'
 
     layer.open({
@@ -918,12 +921,16 @@ function addItem(no, name, auth, album) {
         return String(text).replace(re, '<span class="hl-keyword">$1</span>');
     }
 
+    // 取当前正在添加的这首歌的原始名
+    var currentMusic = musicList[rem.dislist].item[no - 1];
+    var displayName = (currentMusic && currentMusic.displayName) || name;
+
     var html = '<div class="list-item" data-no="' + (no - 1) + '">' +
         '    <span class="list-num">' + no + '</span>' +
         '    <span class="list-mobile-menu"></span>' +
         '    <span class="music-album">' + highlight(album) + '</span>' +
         '    <span class="auth-name">' + highlight(auth) + '</span>' +
-        '    <span class="music-name">' + highlight(name) + '</span>' +
+        '    <span class="music-name">' + highlight(displayName) + '</span>' +
         '</div>';
     rem.mainList.append(html);
 }
