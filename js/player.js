@@ -4,7 +4,7 @@
  *************************************************/
 // 播放器功能配置
 var mkPlayer = {
-    githubAPI: "./static/music_list_20260919115827.json", // Github Page 读取歌单的文件位置
+    githubAPI: "./static/music_list_20260919133842.json", // Github Page 读取歌单的文件位置
     loadcount: 20,  // 搜索结果一次加载多少条
     method: "GET",     // 数据传输方式(POST/GET)
     defaultlist: 3,    // 默认要显示的播放列表编号
